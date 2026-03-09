@@ -1,0 +1,62 @@
+{
+  "profile": {
+    "name": "Marbella Decor & Design",
+    "tagline": "Elegant. Natural. Unique.",
+    "avatar": "/avatar.png"
+  },
+  "links": [
+    {
+      "title": "Shop Our Collection",
+      "url": "https://marbelladd.com",
+      "icon": "globe",
+      "featured": true
+    },
+    {
+      "title": "Design Your Dream Table",
+      "url": "https://marbelladd.com/#custom",
+      "icon": "sparkles",
+      "featured": true
+    },
+    {
+      "title": "Instagram",
+      "url": "https://instagram.com/marbelladd",
+      "icon": "instagram"
+    },
+    {
+      "title": "TikTok",
+      "url": "https://tiktok.com/@marbelladd",
+      "icon": "tiktok"
+    },
+    {
+      "title": "Facebook",
+      "url": "https://facebook.com/marbelladd",
+      "icon": "facebook"
+    },
+    {
+      "title": "YouTube",
+      "url": "https://youtube.com/@marbelladd",
+      "icon": "youtube"
+    },
+    {
+      "title": "WhatsApp",
+      "url": "https://wa.me/1234567890",
+      "icon": "whatsapp"
+    },
+    {
+      "title": "Email Us",
+      "url": "mailto:hello@marbelladd.com",
+      "icon": "email"
+    },
+    {
+      "title": "Portfolio & Catalog",
+      "url": "https://marbelladd.com/#portfolio",
+      "icon": "catalog"
+    }
+  ],
+  "socials": {
+    "instagram": "https://instagram.com/marbelladd",
+    "tiktok": "https://tiktok.com/@marbelladd",
+    "facebook": "https://facebook.com/marbelladd",
+    "youtube": "https://youtube.com/@marbelladd"
+  }
+}
