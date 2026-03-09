@@ -4,21 +4,49 @@ import fallbackData from './links.json';
 import { icons } from './Icons';
 import './App.css';
 
-const SOCIAL_PLATFORMS = ['instagram', 'tiktok', 'facebook', 'youtube'];
+const SOCIAL_PLATFORMS = ['instagram', 'tiktok', 'facebook', 'youtube', 'twitter', 'x', 'linkedin', 'pinterest', 'threads'];
+
+const LANGS = ['en', 'bg', 'ru'];
+
+const UI_STRINGS = {
+  en: { tagline: 'Elegant. Natural. Unique.' },
+  bg: { tagline: 'Елегантно. Естествено. Уникално.' },
+  ru: { tagline: 'Элегантно. Натурально. Уникально.' },
+};
+
+function getInitialLang() {
+  const saved = localStorage.getItem('lang');
+  if (saved && LANGS.includes(saved)) return saved;
+  const nav = navigator.language?.slice(0, 2);
+  if (nav === 'bg') return 'bg';
+  if (nav === 'ru') return 'ru';
+  return 'en';
+}
 
 function App() {
   const [links, setLinks] = useState(null);
-  const [error, setError] = useState(false);
+  const [lang, setLang] = useState(getInitialLang);
   const [ripple, setRipple] = useState(null);
 
   useEffect(() => {
     fetchLinks()
       .then(setLinks)
       .catch(() => {
-        setError(true);
-        setLinks(fallbackData.links);
+        setLinks(
+          fallbackData.links.map((l) => ({
+            ...l,
+            title_en: l.title,
+            title_bg: l.title,
+            title_ru: l.title,
+          }))
+        );
       });
   }, []);
+
+  const changeLang = (l) => {
+    setLang(l);
+    localStorage.setItem('lang', l);
+  };
 
   const handleClick = (url, index, e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -31,15 +59,28 @@ function App() {
     }, 300);
   };
 
+  const getTitle = (link) => link[`title_${lang}`] || link.title_en || link.title;
+
   const socials = links
     ? links.filter((l) => SOCIAL_PLATFORMS.includes(l.icon))
     : [];
 
   return (
     <div className="app">
-      <div className="marble-bg" />
-
       <div className="container">
+        {/* Language Switcher */}
+        <div className="lang-switcher">
+          {LANGS.map((l) => (
+            <button
+              key={l}
+              className={`lang-btn${lang === l ? ' active' : ''}`}
+              onClick={() => changeLang(l)}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+
         <header className="profile">
           <div className="avatar-ring">
             <div className="avatar">
@@ -47,7 +88,7 @@ function App() {
             </div>
           </div>
           <h1 className="brand-name">Marbella Decor &amp; Design</h1>
-          <p className="tagline">Elegant. Natural. Unique.</p>
+          <p className="tagline">{UI_STRINGS[lang].tagline}</p>
         </header>
 
         <nav className="links">
@@ -67,18 +108,9 @@ function App() {
                 <span className="link-icon">
                   {icons[link.icon] || icons.globe}
                 </span>
-                <span className="link-title">{link.title}</span>
+                <span className="link-title">{getTitle(link)}</span>
                 <span className="link-arrow">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14" />
                     <path d="M12 5l7 7-7 7" />
                   </svg>

@@ -57,9 +57,12 @@ export async function fetchLinks() {
   const rows = parseCSV(text);
 
   return rows
-    .filter((row) => row.visible?.toUpperCase() !== 'FALSE' && row.title && row.url)
+    .filter((row) => row.visible?.toUpperCase() !== 'FALSE' && (row.title || row.title_en) && row.url)
     .map((row) => ({
-      title: row.title,
+      title: row.title || row.title_en || '',
+      title_en: row.title_en || row.title || '',
+      title_bg: row.title_bg || row.title_en || row.title || '',
+      title_ru: row.title_ru || row.title_en || row.title || '',
       url: row.url,
       icon: row.icon || 'globe',
       featured: row.featured?.toUpperCase() === 'TRUE',

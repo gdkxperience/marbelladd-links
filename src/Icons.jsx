@@ -1,56 +1,244 @@
+const s = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round' };
+
 export const icons = {
-  globe: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <path d="M2 12h20"/>
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-    </svg>
-  ),
-  sparkles: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z"/>
-    </svg>
-  ),
+  // --- Social ---
   instagram: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="5"/>
-      <circle cx="12" cy="12" r="5"/>
-      <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+    <svg {...s}>
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="17.5" cy="6.5" r="1" />
     </svg>
   ),
   tiktok: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1 0-5.78 2.92 2.92 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.57 6.33 6.33 0 0 0 9.37 22a6.33 6.33 0 0 0 6.37-6.22V9.4a8.16 8.16 0 0 0 3.85.96V7.04a4.78 4.78 0 0 1-1-.35z"/>
+    <svg {...s}>
+      <path d="M9 12a4 4 0 1 0 4-4" />
+      <path d="M13 4v12" />
+      <path d="M13 4c0 2.5 2 4 4 4" />
     </svg>
   ),
   facebook: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+    <svg {...s}>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" />
     </svg>
   ),
   youtube: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
-      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>
+    <svg {...s}>
+      <rect x="2" y="4" width="20" height="16" rx="4" />
+      <path d="M10 9l5 3-5 3V9z" />
     </svg>
   ),
+  twitter: (
+    <svg {...s}>
+      <path d="M4 4l6.5 8L4 20h2l5.25-6.4L15 20h5l-6.8-8.4L19.5 4h-2l-4.95 6L8.5 4H4z" />
+    </svg>
+  ),
+  x: (
+    <svg {...s}>
+      <path d="M4 4l6.5 8L4 20h2l5.25-6.4L15 20h5l-6.8-8.4L19.5 4h-2l-4.95 6L8.5 4H4z" />
+    </svg>
+  ),
+  pinterest: (
+    <svg {...s}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.5 19c.3-1.8.8-3.5 1.5-5 .7-1.5 1-2.5 1-3.5a2 2 0 1 1 4 0c0 1.5-1 3-2 4" />
+    </svg>
+  ),
+  linkedin: (
+    <svg {...s}>
+      <rect x="2" y="2" width="20" height="20" rx="3" />
+      <path d="M8 11v5" />
+      <path d="M8 8v.01" />
+      <path d="M12 16v-5c0-1 1-2 2-2s2 1 2 2v5" />
+    </svg>
+  ),
+  threads: (
+    <svg {...s}>
+      <path d="M12 22c-4.5 0-7-3-7-7.5V10c0-3.5 2.5-6 6-6 2 0 3.5.8 4.5 2" />
+      <path d="M15.5 6c1 .8 2.5 2.5 2.5 5 0 3-1.5 5-4 5s-4-2-4-4.5c0-2 1.5-3.5 3.5-3.5s3 1.5 3 3.5c0 1.5-1 2.5-2 2.5s-1.5-.5-1.5-1.5" />
+    </svg>
+  ),
+  snapchat: (
+    <svg {...s}>
+      <path d="M12 3c-2.5 0-4 2-4 4.5v2c-1 .2-2 .5-2 1.3 0 .6.5 1 1.2 1.2-.3 1-1 2-2.2 2.8 0 0 2 1.2 5 1.2s5-1.2 5-1.2c-1.2-.8-1.9-1.8-2.2-2.8.7-.2 1.2-.6 1.2-1.2 0-.8-1-.9-2-1.1v-2.2C16 5 14.5 3 12 3z" />
+    </svg>
+  ),
+  telegram: (
+    <svg {...s}>
+      <path d="M21 3L1 11l7 2.5" />
+      <path d="M8 13.5L19 5" />
+      <path d="M8 13.5v5l3.5-3" />
+      <path d="M11.5 15.5L19 21l2-18" />
+    </svg>
+  ),
+
+  // --- Contact ---
   whatsapp: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+    <svg {...s}>
+      <path d="M3 21l1.5-5.5A9 9 0 1 1 9.5 20L3 21z" />
+      <path d="M9 10c.5-1 1-1.5 1.5-1.5s1 .5 1 1-.5 1.5-1 2c.5 1 1.5 2 2.5 2.5.5-.5 1.5-1 2-1s1 .5 1 1-.5 1.5-1.5 1.5C12 16 9 13 9 10z" />
     </svg>
   ),
   email: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2"/>
-      <path d="M22 7l-10 6L2 7"/>
+    <svg {...s}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="M22 7l-10 6L2 7" />
+    </svg>
+  ),
+  phone: (
+    <svg {...s}>
+      <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
+    </svg>
+  ),
+  sms: (
+    <svg {...s}>
+      <path d="M21 12a9 9 0 0 1-9 9c-2 0-3.8-.6-5.3-1.7L3 21l1.7-3.7A9 9 0 1 1 21 12z" />
+    </svg>
+  ),
+
+  // --- General ---
+  globe: (
+    <svg {...s}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20" />
+      <path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z" />
+    </svg>
+  ),
+  sparkles: (
+    <svg {...s}>
+      <path d="M12 3l1.5 5a2 2 0 0 0 1.5 1.5L20 12l-5 1.5a2 2 0 0 0-1.5 1.5L12 20l-1.5-5A2 2 0 0 0 9 13.5L4 12l5-1.5A2 2 0 0 0 10.5 9L12 3z" />
     </svg>
   ),
   catalog: (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-      <path d="M8 7h8"/>
-      <path d="M8 11h6"/>
+    <svg {...s}>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  ),
+  link: (
+    <svg {...s}>
+      <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5" />
+      <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.5-1.5" />
+    </svg>
+  ),
+  shop: (
+    <svg {...s}>
+      <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+      <path d="M3 9l1.5-5h15L21 9" />
+      <path d="M9 21V14h6v7" />
+    </svg>
+  ),
+  heart: (
+    <svg {...s}>
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
+    </svg>
+  ),
+  star: (
+    <svg {...s}>
+      <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z" />
+    </svg>
+  ),
+  map: (
+    <svg {...s}>
+      <path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 1 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  ),
+  calendar: (
+    <svg {...s}>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4" />
+      <path d="M8 2v4" />
+      <path d="M3 10h18" />
+    </svg>
+  ),
+  gift: (
+    <svg {...s}>
+      <rect x="3" y="8" width="18" height="13" rx="1" />
+      <path d="M12 8v13" />
+      <path d="M3 12h18" />
+      <path d="M12 8c-1.5 0-4-1-4-3.5S9 2 10 2c1.5 0 2 1.5 2 3" />
+      <path d="M12 8c1.5 0 4-1 4-3.5S15 2 14 2c-1.5 0-2 1.5-2 3" />
+    </svg>
+  ),
+  camera: (
+    <svg {...s}>
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  ),
+  music: (
+    <svg {...s}>
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+    </svg>
+  ),
+  play: (
+    <svg {...s}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M10 8l6 4-6 4V8z" />
+    </svg>
+  ),
+  download: (
+    <svg {...s}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M12 15V3" />
+    </svg>
+  ),
+  file: (
+    <svg {...s}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+    </svg>
+  ),
+  tag: (
+    <svg {...s}>
+      <path d="M20.6 11.4L12 20l-8.6-8.6A2 2 0 0 1 3 10V4a1 1 0 0 1 1-1h6a2 2 0 0 1 1.4.6l9.2 9.2a1 1 0 0 1 0 1.6z" />
+      <circle cx="7.5" cy="7.5" r="1" />
+    </svg>
+  ),
+  coffee: (
+    <svg {...s}>
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+      <path d="M6 1v3" />
+      <path d="M10 1v3" />
+      <path d="M14 1v3" />
+    </svg>
+  ),
+  info: (
+    <svg {...s}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  ),
+  menu: (
+    <svg {...s}>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  ),
+  cart: (
+    <svg {...s}>
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
+    </svg>
+  ),
+  user: (
+    <svg {...s}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M20 21a8 8 0 0 0-16 0" />
+    </svg>
+  ),
+  clock: (
+    <svg {...s}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v6l4 2" />
     </svg>
   ),
 };
