@@ -82,12 +82,11 @@ function App() {
         </div>
 
         <header className="profile">
-          <div className="avatar-ring">
-            <div className="avatar">
-              <span className="avatar-text">MDD</span>
-            </div>
-          </div>
-          <h1 className="brand-name">Marbella Decor &amp; Design</h1>
+          <img
+            src="/marbella-logo.png"
+            alt="Marbella Decor & Design"
+            className="logo"
+          />
           <p className="tagline">{UI_STRINGS[lang].tagline}</p>
         </header>
 
