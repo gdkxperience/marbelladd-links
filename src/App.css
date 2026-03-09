@@ -239,6 +239,28 @@
   opacity: 0.6;
 }
 
+/* ===== Loading ===== */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2.5px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ===== Animations ===== */
 @keyframes fadeDown {
   from {
