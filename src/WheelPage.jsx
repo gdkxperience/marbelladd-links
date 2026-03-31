@@ -2,63 +2,111 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './WheelPage.css';
 
+// 10 prizes matching the physical wheel — clockwise from top
 const PRIZES = [
-  { label: '10%', full: '10% Off', color: '#c25b41' },
-  { label: 'Free\nDelivery', full: 'Free Delivery', color: '#222222' },
-  { label: '15%', full: '15% Off', color: '#8b6f4e' },
-  { label: 'Free\nConsult', full: 'Free Design Consultation', color: '#6b6560' },
-  { label: '20%', full: '20% Off', color: '#c25b41' },
-  { label: '5%', full: '5% Off', color: '#a0937d' },
-  { label: 'Free\nDelivery', full: 'Free Delivery', color: '#222222' },
-  { label: '10%', full: '10% Off', color: '#8b6f4e' },
+  {
+    bg: 'Безплатна\nдоставка маса',
+    en: 'Free Table\nDelivery',
+    ru: 'Бесплатная\nдоставка стола',
+  },
+  {
+    bg: '15% отстъпка\nмаса',
+    en: '15% Off\nTable',
+    ru: 'Скидка 15%\nна стол',
+  },
+  {
+    bg: 'Томбола\nMarbella маса',
+    en: 'Raffle\nMarbella Table',
+    ru: 'Розыгрыш\nстола Marbella',
+  },
+  {
+    bg: 'Дизайн проект\nконсултация',
+    en: 'Design Project\nConsultation',
+    ru: 'Дизайн-проект\nконсультация',
+  },
+  {
+    bg: 'Опитай пак',
+    en: 'Try Again',
+    ru: 'Попробуй снова',
+    isRetry: true,
+  },
+  {
+    bg: 'Marbella gift\ncoaster',
+    en: 'Marbella Gift\nCoaster',
+    ru: 'Подарок Marbella\nподставка',
+  },
+  {
+    bg: 'Отстъпка 10%\nаксесоари',
+    en: '10% Off\nAccessories',
+    ru: 'Скидка 10%\nаксессуары',
+  },
+  {
+    bg: '25% отстъпка\nаксесоари',
+    en: '25% Off\nAccessories',
+    ru: 'Скидка 25%\nаксессуары',
+  },
+  {
+    bg: 'Отстъпка 5%\nаксесоари',
+    en: '5% Off\nAccessories',
+    ru: 'Скидка 5%\nаксессуары',
+  },
+  {
+    bg: '200€ подарък\nмаса',
+    en: '€200 Gift\nToward a Table',
+    ru: 'Подарок 200€\nна стол',
+  },
 ];
 
-const SEGMENT_ANGLE = 360 / PRIZES.length;
+const NUM_SEGMENTS = PRIZES.length;
+const SEGMENT_ANGLE = 360 / NUM_SEGMENTS;
 
 const LANGS = ['en', 'bg', 'ru'];
 
 const UI = {
   en: {
     title: 'Spin & Win',
-    subtitle: 'Try your luck and win an exclusive discount!',
+    subtitle: 'Try your luck and win an exclusive prize!',
     emailPlaceholder: 'Enter your email',
     spin: 'Spin the Wheel',
     spinning: 'Spinning...',
     congrats: 'Congratulations!',
-    youWon: 'You won',
+    tryAgainMsg: 'Better luck next time!',
     emailSent: 'A coupon has been sent to your email!',
     alreadyPlayed: 'You have already played with this email.',
     invalidEmail: 'Please enter a valid email address.',
     backToLinks: 'Back to Links',
     terms: 'One spin per email. Show the coupon at our store to redeem.',
+    spinAgain: 'Try Again',
   },
   bg: {
     title: 'Завърти & Спечели',
-    subtitle: 'Опитай късмета си и спечели ексклузивна отстъпка!',
+    subtitle: 'Опитай късмета си и спечели ексклузивна награда!',
     emailPlaceholder: 'Въведи имейл',
     spin: 'Завърти колелото',
     spinning: 'Върти се...',
     congrats: 'Поздравления!',
-    youWon: 'Спечели',
+    tryAgainMsg: 'Повече късмет следващия път!',
     emailSent: 'Купон беше изпратен на имейла ти!',
     alreadyPlayed: 'Вече си играл с този имейл.',
     invalidEmail: 'Моля, въведи валиден имейл адрес.',
     backToLinks: 'Обратно към линкове',
     terms: 'Едно завъртане на имейл. Покажи купона в магазина, за да го използваш.',
+    spinAgain: 'Опитай пак',
   },
   ru: {
     title: 'Крути & Выиграй',
-    subtitle: 'Испытай удачу и выиграй эксклюзивную скидку!',
+    subtitle: 'Испытай удачу и выиграй эксклюзивный приз!',
     emailPlaceholder: 'Введите email',
     spin: 'Крутить колесо',
     spinning: 'Крутится...',
     congrats: 'Поздравляем!',
-    youWon: 'Вы выиграли',
+    tryAgainMsg: 'Повезёт в следующий раз!',
     emailSent: 'Купон отправлен на ваш email!',
     alreadyPlayed: 'Вы уже играли с этим email.',
     invalidEmail: 'Пожалуйста, введите действительный email.',
     backToLinks: 'Назад к ссылкам',
     terms: 'Одно вращение на email. Покажите купон в магазине для активации.',
+    spinAgain: 'Попробовать снова',
   },
 };
 
@@ -93,99 +141,114 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function drawWheel(canvas) {
+function drawWheel(canvas, lang) {
+  const size = 320; // logical size
   const ctx = canvas.getContext('2d');
-  const size = canvas.width;
   const center = size / 2;
-  const radius = center - 4;
+  const radius = center - 6;
 
   ctx.clearRect(0, 0, size, size);
 
+  // Draw segments
   PRIZES.forEach((prize, i) => {
     const startAngle = (i * SEGMENT_ANGLE - 90) * (Math.PI / 180);
     const endAngle = ((i + 1) * SEGMENT_ANGLE - 90) * (Math.PI / 180);
 
-    // Segment fill
+    // Alternating dark segments
     ctx.beginPath();
     ctx.moveTo(center, center);
     ctx.arc(center, center, radius, startAngle, endAngle);
     ctx.closePath();
-    ctx.fillStyle = i % 2 === 0 ? '#f7f6f4' : '#ede6cf';
+    ctx.fillStyle = i % 2 === 0 ? '#1a1a1a' : '#2a2a2a';
     ctx.fill();
 
-    // Segment border
+    // Segment divider lines
     ctx.beginPath();
     ctx.moveTo(center, center);
-    ctx.arc(center, center, radius, startAngle, endAngle);
-    ctx.closePath();
-    ctx.strokeStyle = '#e8e6e2';
+    ctx.lineTo(
+      center + radius * Math.cos(startAngle),
+      center + radius * Math.sin(startAngle)
+    );
+    ctx.strokeStyle = '#444444';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Text
+    // Text along the segment (rotated from center outward)
+    const midAngle = startAngle + (SEGMENT_ANGLE * Math.PI) / 360;
     ctx.save();
     ctx.translate(center, center);
-    ctx.rotate(startAngle + (SEGMENT_ANGLE * Math.PI) / 360);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = prize.color;
-    ctx.font = `600 ${size * 0.038}px Montserrat, sans-serif`;
+    ctx.rotate(midAngle);
 
-    const lines = prize.label.split('\n');
-    const lineHeight = size * 0.045;
-    const textOffset = radius * 0.62;
+    const label = prize[lang] || prize.en;
+    const lines = label.split('\n');
+    const fontSize = size * 0.032;
+    ctx.font = `600 ${fontSize}px "Montserrat", "Inter", sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const lineHeight = fontSize * 1.35;
+    const textCenter = radius * 0.58;
 
     lines.forEach((line, li) => {
-      const y = textOffset + (li - (lines.length - 1) / 2) * lineHeight;
+      const y = textCenter + (li - (lines.length - 1) / 2) * lineHeight;
       ctx.fillText(line, 0, y);
     });
 
     ctx.restore();
   });
 
-  // Center circle
-  ctx.beginPath();
-  ctx.arc(center, center, radius * 0.15, 0, Math.PI * 2);
-  ctx.fillStyle = '#222222';
-  ctx.fill();
-
-  // Inner ring
-  ctx.beginPath();
-  ctx.arc(center, center, radius * 0.12, 0, Math.PI * 2);
-  ctx.fillStyle = '#333333';
-  ctx.fill();
+  // Peg dots on the rim
+  for (let i = 0; i < NUM_SEGMENTS; i++) {
+    const angle = ((i + 0.5) * SEGMENT_ANGLE - 90) * (Math.PI / 180);
+    const pegR = radius - 10;
+    ctx.beginPath();
+    ctx.arc(
+      center + pegR * Math.cos(angle),
+      center + pegR * Math.sin(angle),
+      3, 0, Math.PI * 2
+    );
+    ctx.fillStyle = '#111111';
+    ctx.fill();
+    ctx.strokeStyle = '#555555';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
 
   // Outer ring
   ctx.beginPath();
   ctx.arc(center, center, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = '#222222';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#f7f6f4';
+  ctx.lineWidth = 4;
   ctx.stroke();
 
-  // Tick marks
-  for (let i = 0; i < PRIZES.length * 3; i++) {
-    const angle = (i * (360 / (PRIZES.length * 3)) - 90) * (Math.PI / 180);
-    const inner = radius - 8;
-    const outer = radius - 2;
-    ctx.beginPath();
-    ctx.moveTo(center + inner * Math.cos(angle), center + inner * Math.sin(angle));
-    ctx.lineTo(center + outer * Math.cos(angle), center + outer * Math.sin(angle));
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
+  // Center hub — outer ring
+  ctx.beginPath();
+  ctx.arc(center, center, radius * 0.13, 0, Math.PI * 2);
+  ctx.fillStyle = '#333333';
+  ctx.fill();
+  ctx.strokeStyle = '#555555';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Center hub — inner
+  ctx.beginPath();
+  ctx.arc(center, center, radius * 0.06, 0, Math.PI * 2);
+  ctx.fillStyle = '#666666';
+  ctx.fill();
 }
 
 export default function WheelPage() {
   const [lang, setLang] = useState(getInitialLang);
   const [email, setEmail] = useState('');
-  const [phase, setPhase] = useState('form'); // form | spinning | won | played
+  const [phase, setPhase] = useState('form'); // form | spinning | won | retry
   const [prize, setPrize] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [error, setError] = useState('');
   const canvasRef = useRef(null);
   const t = UI[lang];
 
-  useEffect(() => {
+  const initCanvas = (currentLang) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
@@ -194,12 +257,14 @@ export default function WheelPage() {
     canvas.height = size * dpr;
     canvas.style.width = size + 'px';
     canvas.style.height = size + 'px';
-    canvas.getContext('2d').scale(dpr, dpr);
-    // Redraw at the correct canvas dimensions
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawWheel(canvas);
-  }, []);
+    drawWheel(canvas, currentLang);
+  };
+
+  useEffect(() => {
+    initCanvas(lang);
+  }, [lang]);
 
   const handleSpin = async () => {
     setError('');
@@ -216,39 +281,45 @@ export default function WheelPage() {
 
     setPhase('spinning');
 
-    // Pick random prize
+    // Pick random prize (excluding "Try Again" for email coupon, but still landable)
     const prizeIndex = Math.floor(Math.random() * PRIZES.length);
     const won = PRIZES[prizeIndex];
 
-    // Calculate spin: land on the winning segment
-    // Wheel top (pointer) = 0deg. Segment i center = i * SEGMENT_ANGLE + SEGMENT_ANGLE/2
-    // We need to rotate so that segment center aligns with top (0deg)
+    // Calculate spin to land on the correct segment
     const targetAngle = 360 - (prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2);
-    const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full rotations
-    const totalRotation = rotation + fullSpins * 360 + targetAngle + Math.random() * (SEGMENT_ANGLE * 0.6) - SEGMENT_ANGLE * 0.3;
+    const fullSpins = 5 + Math.floor(Math.random() * 3);
+    const jitter = (Math.random() - 0.5) * SEGMENT_ANGLE * 0.6;
+    const totalRotation = rotation + fullSpins * 360 + targetAngle + jitter;
 
     setRotation(totalRotation);
 
-    // Wait for animation
     setTimeout(() => {
       setPrize(won);
-      setPhase('won');
-      markEmailPlayed(email);
-
-      // Fire API call (non-blocking)
-      sendSpinData(email, won.full).catch(() => {});
+      if (won.isRetry) {
+        setPhase('retry');
+      } else {
+        setPhase('won');
+        markEmailPlayed(email);
+        const prizeText = won[lang] || won.en;
+        sendSpinData(email, prizeText.replace('\n', ' ')).catch(() => {});
+      }
     }, 4500);
   };
 
-  const sendSpinData = async (email, prizeName) => {
+  const handleRetry = () => {
+    setPhase('form');
+    setPrize(null);
+  };
+
+  const sendSpinData = async (userEmail, prizeName) => {
     try {
       await fetch('/api/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, prize: prizeName }),
+        body: JSON.stringify({ email: userEmail, prize: prizeName }),
       });
     } catch {
-      // API is optional — localStorage already tracks the spin
+      // API is optional
     }
   };
 
@@ -308,8 +379,20 @@ export default function WheelPage() {
           <div className="prize-reveal">
             <div className="prize-badge">
               <span className="prize-congrats">{t.congrats}</span>
-              <span className="prize-value">{prize.full}</span>
+              <span className="prize-value">{(prize[lang] || prize.en).replace('\n', ' ')}</span>
               <span className="prize-email-sent">{t.emailSent}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Try again result */}
+        {phase === 'retry' && (
+          <div className="prize-reveal">
+            <div className="prize-badge retry-badge">
+              <span className="prize-value">{t.tryAgainMsg}</span>
+              <button className="wheel-btn retry-btn" onClick={handleRetry}>
+                {t.spinAgain}
+              </button>
             </div>
           </div>
         )}
