@@ -88,6 +88,8 @@ const UI = {
     step2: 'Print it or show it on your phone',
     step3: 'Visit our store to redeem your prize',
     close: 'Got it!',
+    prizesTitle: 'Prizes You Can Win!',
+    spinNow: 'Spin Now!',
   },
   bg: {
     title: 'Завърти & Спечели',
@@ -113,6 +115,8 @@ const UI = {
     step2: 'Принтирай го или покажи на телефона',
     step3: 'Посети магазина ни, за да вземеш наградата',
     close: 'Разбрах!',
+    prizesTitle: 'Награди, които можеш да спечелиш!',
+    spinNow: 'Завърти сега!',
   },
   ru: {
     title: 'Крути & Выиграй',
@@ -138,6 +142,8 @@ const UI = {
     step2: 'Распечатайте или покажите на телефоне',
     step3: 'Посетите наш магазин, чтобы забрать приз',
     close: 'Понятно!',
+    prizesTitle: 'Призы, которые вы можете выиграть!',
+    spinNow: 'Крутить сейчас!',
   },
 };
 
@@ -218,7 +224,7 @@ function drawWheel(canvas, lang, size) {
 
     const label = prize[lang] || prize.en;
     const lines = label.split('\n');
-    const fontSize = Math.max(8, size * 0.025);
+    const fontSize = Math.max(10, size * 0.0375);
     ctx.font = `600 ${fontSize}px "Inter", sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
@@ -288,7 +294,9 @@ export default function WheelPage() {
   const [prize, setPrize] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [error, setError] = useState('');
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
   const canvasRef = useRef(null);
+  const inactivityTimer = useRef(null);
   const t = UI[lang];
 
   const getWheelSize = () => {
@@ -319,6 +327,23 @@ export default function WheelPage() {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [lang]);
+
+  // 30s inactivity timer — show prizes modal
+  useEffect(() => {
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer.current);
+      if (phase === 'form') {
+        inactivityTimer.current = setTimeout(() => setShowPrizesModal(true), 30000);
+      }
+    };
+    const events = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll'];
+    events.forEach((e) => window.addEventListener(e, resetTimer));
+    resetTimer();
+    return () => {
+      clearTimeout(inactivityTimer.current);
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [phase]);
 
   const handleSpin = async () => {
     setError('');
@@ -541,6 +566,41 @@ export default function WheelPage() {
             <span className="modal-congrats">{t.tryAgainMsg}</span>
             <button className="wheel-btn modal-btn" onClick={handleRetry}>
               {t.spinAgain}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Inactivity prizes modal */}
+      {showPrizesModal && (
+        <div className="modal-overlay" onClick={() => setShowPrizesModal(false)}>
+          <div className="prizes-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="prizes-modal-heading">{t.title}</h2>
+            <span className="prizes-modal-title">{t.prizesTitle}</span>
+            <div className="prizes-list">
+              {/* Top 3 biggest prizes first, larger font */}
+              {[9, 2, 3].map((idx) => {
+                const p = PRIZES[idx];
+                return (
+                  <div key={idx} className="prizes-item prizes-item-big">
+                    <span className="prizes-star">&#9733;</span>
+                    <span>{(p[lang] || p.en).replace('\n', ' ')}</span>
+                  </div>
+                );
+              })}
+              {/* Remaining prizes */}
+              {[0, 1, 5, 6, 7, 8].map((idx) => {
+                const p = PRIZES[idx];
+                return (
+                  <div key={idx} className="prizes-item">
+                    <span className="prizes-dot">&#8226;</span>
+                    <span>{(p[lang] || p.en).replace('\n', ' ')}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <button className="wheel-btn modal-btn" onClick={() => setShowPrizesModal(false)}>
+              {t.spinNow}
             </button>
           </div>
         </div>
