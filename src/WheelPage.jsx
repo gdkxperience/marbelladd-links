@@ -70,13 +70,18 @@ const UI = {
     spin: 'Spin the Wheel',
     spinning: 'Spinning...',
     congrats: 'Congratulations!',
+    youWon: 'You won',
     tryAgainMsg: 'Better luck next time!',
-    emailSent: 'A coupon has been sent to your email!',
+    emailSent: 'A coupon has been sent to your email.',
     alreadyPlayed: 'You have already played with this email.',
     invalidEmail: 'Please enter a valid email address.',
     backToLinks: 'Back to Links',
     terms: 'One spin per email. Show the coupon at our store to redeem.',
     spinAgain: 'Try Again',
+    step1: 'Check your email for the coupon',
+    step2: 'Print it or show it on your phone',
+    step3: 'Visit our store to redeem your prize',
+    close: 'Got it!',
   },
   bg: {
     title: 'Завърти & Спечели',
@@ -85,13 +90,18 @@ const UI = {
     spin: 'Завърти колелото',
     spinning: 'Върти се...',
     congrats: 'Поздравления!',
+    youWon: 'Спечели',
     tryAgainMsg: 'Повече късмет следващия път!',
-    emailSent: 'Купон беше изпратен на имейла ти!',
+    emailSent: 'Купон беше изпратен на имейла ти.',
     alreadyPlayed: 'Вече си играл с този имейл.',
     invalidEmail: 'Моля, въведи валиден имейл адрес.',
     backToLinks: 'Обратно към линкове',
     terms: 'Едно завъртане на имейл. Покажи купона в магазина, за да го използваш.',
     spinAgain: 'Опитай пак',
+    step1: 'Провери имейла си за купона',
+    step2: 'Принтирай го или покажи на телефона',
+    step3: 'Посети магазина ни, за да вземеш наградата',
+    close: 'Разбрах!',
   },
   ru: {
     title: 'Крути & Выиграй',
@@ -100,13 +110,18 @@ const UI = {
     spin: 'Крутить колесо',
     spinning: 'Крутится...',
     congrats: 'Поздравляем!',
+    youWon: 'Вы выиграли',
     tryAgainMsg: 'Повезёт в следующий раз!',
-    emailSent: 'Купон отправлен на ваш email!',
+    emailSent: 'Купон отправлен на ваш email.',
     alreadyPlayed: 'Вы уже играли с этим email.',
     invalidEmail: 'Пожалуйста, введите действительный email.',
     backToLinks: 'Назад к ссылкам',
     terms: 'Одно вращение на email. Покажите купон в магазине для активации.',
     spinAgain: 'Попробовать снова',
+    step1: 'Проверьте почту — купон уже там',
+    step2: 'Распечатайте или покажите на телефоне',
+    step3: 'Посетите наш магазин, чтобы забрать приз',
+    close: 'Понятно!',
   },
 };
 
@@ -174,31 +189,30 @@ function drawWheel(canvas, lang) {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Text — drawn radially, reading from rim toward center (like the physical wheel)
+    // Text — runs along the radius, reading from rim toward center (like the physical wheel)
     const midAngle = startAngle + segRad / 2;
     ctx.save();
     ctx.translate(center, center);
-    // Rotate so "up" on the canvas points to mid-angle, then turn 90° so text reads along radius
-    ctx.rotate(midAngle + Math.PI / 2);
+    // Rotate so +X points outward along this segment, then flip so text reads rim→center
+    ctx.rotate(midAngle + Math.PI);
 
     const label = prize[lang] || prize.en;
     const lines = label.split('\n');
-    const fontSize = 8.5;
-    ctx.font = `600 ${fontSize}px "Inter", "Montserrat", sans-serif`;
+    const fontSize = 8;
+    ctx.font = `600 ${fontSize}px "Inter", sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const lineHeight = fontSize * 1.4;
-    // Position text centered between hub and rim
-    const textCenterDist = radius * 0.55;
-    // Max width constrained by segment arc width at the text distance
-    const maxWidth = 2 * textCenterDist * Math.sin(segRad / 2) * 0.85;
+    const lineSpacing = fontSize * 1.3;
+    const textDist = radius * 0.54;
+    // Max text length constrained to fit between hub and rim
+    const maxLen = radius * 0.7;
 
     lines.forEach((line, li) => {
-      const offset = (li - (lines.length - 1) / 2) * lineHeight;
-      // x goes along radius direction, y is 0 (centered)
-      ctx.fillText(line, offset, -textCenterDist, maxWidth);
+      // Each line is offset perpendicular to the radius (across the segment width)
+      const perpOffset = (li - (lines.length - 1) / 2) * lineSpacing;
+      ctx.fillText(line, -textDist, perpOffset, maxLen);
     });
 
     ctx.restore();
@@ -380,23 +394,34 @@ export default function WheelPage() {
           </div>
         </div>
 
-        {/* Prize result */}
+        {/* Prize popup overlay */}
         {phase === 'won' && prize && (
-          <div className="prize-reveal">
-            <div className="prize-badge">
-              <span className="prize-congrats">{t.congrats}</span>
-              <span className="prize-value">{(prize[lang] || prize.en).replace('\n', ' ')}</span>
-              <span className="prize-email-sent">{t.emailSent}</span>
+          <div className="modal-overlay" onClick={() => setPhase('done')}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <span className="modal-congrats">{t.congrats}</span>
+              <div className="modal-prize-card">
+                <span className="modal-prize-label">{t.youWon}</span>
+                <span className="modal-prize-value">{(prize[lang] || prize.en).replace('\n', ' ')}</span>
+              </div>
+              <div className="modal-steps">
+                <div className="modal-step"><span className="modal-step-num">1</span>{t.step1}</div>
+                <div className="modal-step"><span className="modal-step-num">2</span>{t.step2}</div>
+                <div className="modal-step"><span className="modal-step-num">3</span>{t.step3}</div>
+              </div>
+              <span className="modal-email-note">{t.emailSent}</span>
+              <button className="wheel-btn modal-btn" onClick={() => setPhase('done')}>
+                {t.close}
+              </button>
             </div>
           </div>
         )}
 
-        {/* Try again result */}
+        {/* Try again popup overlay */}
         {phase === 'retry' && (
-          <div className="prize-reveal">
-            <div className="prize-badge retry-badge">
-              <span className="prize-value">{t.tryAgainMsg}</span>
-              <button className="wheel-btn retry-btn" onClick={handleRetry}>
+          <div className="modal-overlay" onClick={handleRetry}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <span className="modal-congrats">{t.tryAgainMsg}</span>
+              <button className="wheel-btn modal-btn" onClick={handleRetry}>
                 {t.spinAgain}
               </button>
             </div>
