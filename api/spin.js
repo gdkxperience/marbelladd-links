@@ -26,13 +26,24 @@ export default async function handler(req, res) {
   const timestamp = new Date().toISOString();
 
   // 1. Store data in Google Sheets (optional)
+  // Google Apps Script redirects (302) on POST — we must follow manually keeping POST method
   if (process.env.GOOGLE_SHEET_WEBHOOK) {
     try {
-      await fetch(process.env.GOOGLE_SHEET_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, company, prize, timestamp }),
-      });
+      const payload = JSON.stringify({ name, email, phone, company, prize, timestamp });
+      let url = process.env.GOOGLE_SHEET_WEBHOOK;
+      for (let i = 0; i < 3; i++) {
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          redirect: 'manual',
+        });
+        if (resp.status >= 300 && resp.status < 400) {
+          url = resp.headers.get('location');
+          continue;
+        }
+        break;
+      }
     } catch {
       // Non-blocking — continue even if sheet storage fails
     }
