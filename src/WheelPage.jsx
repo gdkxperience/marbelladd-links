@@ -218,7 +218,7 @@ function drawWheel(canvas, lang) {
 
     const label = prize[lang] || prize.en;
     const lines = label.split('\n');
-    const fontSize = 8;
+    const fontSize = Math.max(8, size * 0.025);
     ctx.font = `600 ${fontSize}px "Inter", sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
@@ -291,11 +291,19 @@ export default function WheelPage() {
   const canvasRef = useRef(null);
   const t = UI[lang];
 
+  const getWheelSize = () => {
+    const w = window.innerWidth;
+    if (w >= 1024) return 480;
+    if (w >= 768) return 420;
+    if (w <= 360) return 280;
+    return 320;
+  };
+
   const initCanvas = (currentLang) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
-    const size = 320;
+    const size = getWheelSize();
     canvas.width = size * dpr;
     canvas.height = size * dpr;
     canvas.style.width = size + 'px';
@@ -307,6 +315,9 @@ export default function WheelPage() {
 
   useEffect(() => {
     initCanvas(lang);
+    const onResize = () => initCanvas(lang);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [lang]);
 
   const handleSpin = async () => {
@@ -392,9 +403,16 @@ export default function WheelPage() {
   };
 
   return (
-    <div className="app">
-      <div className="container wheel-container">
-        {/* Language Switcher */}
+    <div className="wheel-page">
+      {/* Top bar */}
+      <div className="wheel-topbar">
+        <Link to="/" className="back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+          {t.backToLinks}
+        </Link>
         <div className="lang-switcher">
           {LANGS.map((l) => (
             <button
@@ -406,122 +424,127 @@ export default function WheelPage() {
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Back link */}
-        <Link to="/" className="back-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5" />
-            <path d="M12 19l-7-7 7-7" />
-          </svg>
-          {t.backToLinks}
-        </Link>
-
-        <header className="wheel-header">
-          <h1 className="wheel-title">{t.title}</h1>
-          <p className="wheel-subtitle">{t.subtitle}</p>
-        </header>
-
-        {/* Wheel */}
-        <div className="wheel-wrapper">
-          <div className="wheel-pointer" />
-          <div
-            className="wheel-spin-area"
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              transition: phase === 'spinning'
-                ? 'transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
-                : 'none',
-            }}
-          >
-            <canvas ref={canvasRef} className="wheel-canvas" />
+      <div className="wheel-layout">
+        {/* Left / Top: Wheel */}
+        <div className="wheel-col-left">
+          <div className="wheel-wrapper">
+            <div className="wheel-pointer" />
+            <div
+              className="wheel-spin-area"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+                transition: phase === 'spinning'
+                  ? 'transform 4.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)'
+                  : 'none',
+              }}
+            >
+              <canvas ref={canvasRef} className="wheel-canvas" />
+            </div>
           </div>
         </div>
 
-        {/* Prize popup overlay */}
-        {phase === 'won' && prize && (
-          <div className="modal-overlay" onClick={() => setPhase('done')}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <span className="modal-congrats">{t.congrats}</span>
-              <div className="modal-prize-card">
-                <span className="modal-prize-label">{t.youWon}</span>
-                <span className="modal-prize-value">{(prize[lang] || prize.en).replace('\n', ' ')}</span>
-              </div>
-              <div className="modal-steps">
-                <div className="modal-step"><span className="modal-step-num">1</span>{t.step1}</div>
-                <div className="modal-step"><span className="modal-step-num">2</span>{t.step2}</div>
-                <div className="modal-step"><span className="modal-step-num">3</span>{t.step3}</div>
-              </div>
-              <span className="modal-email-note">{t.emailSent}</span>
-              <button className="wheel-btn modal-btn" onClick={() => setPhase('done')}>
-                {t.close}
+        {/* Right / Bottom: Form */}
+        <div className="wheel-col-right">
+          <header className="wheel-header">
+            <h1 className="wheel-title">{t.title}</h1>
+            <p className="wheel-subtitle">{t.subtitle}</p>
+          </header>
+
+          {(phase === 'form' || phase === 'spinning') && (
+            <div className="wheel-form">
+              <input
+                type="text"
+                className="wheel-input"
+                placeholder={t.namePlaceholder}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={phase === 'spinning'}
+              />
+              <input
+                type="email"
+                className="wheel-input"
+                placeholder={t.emailPlaceholder}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={phase === 'spinning'}
+              />
+              <input
+                type="tel"
+                className="wheel-input"
+                placeholder={t.phonePlaceholder}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={phase === 'spinning'}
+              />
+              <input
+                type="text"
+                className="wheel-input"
+                placeholder={t.companyPlaceholder}
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                disabled={phase === 'spinning'}
+              />
+              {error && <p className="wheel-error">{error}</p>}
+              <button
+                className="wheel-btn"
+                onClick={handleSpin}
+                disabled={phase === 'spinning'}
+              >
+                {phase === 'spinning' ? t.spinning : t.spin}
               </button>
-              <button className="wheel-btn-secondary modal-btn" onClick={handleNewSpin}>
+            </div>
+          )}
+
+          {phase === 'done' && (
+            <div className="wheel-form">
+              <button className="wheel-btn" onClick={handleNewSpin}>
                 {t.spinAgain}
               </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Try again popup overlay */}
-        {phase === 'retry' && (
-          <div className="modal-overlay" onClick={handleRetry}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <span className="modal-congrats">{t.tryAgainMsg}</span>
-              <button className="wheel-btn modal-btn" onClick={handleRetry}>
-                {t.spinAgain}
-              </button>
+          <p className="wheel-terms">{t.terms}</p>
+        </div>
+      </div>
+
+      {/* Prize popup overlay */}
+      {phase === 'won' && prize && (
+        <div className="modal-overlay" onClick={() => setPhase('done')}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <span className="modal-congrats">{t.congrats}</span>
+            <div className="modal-prize-card">
+              <span className="modal-prize-label">{t.youWon}</span>
+              <span className="modal-prize-value">{(prize[lang] || prize.en).replace('\n', ' ')}</span>
             </div>
-          </div>
-        )}
-
-        {/* Form */}
-        {(phase === 'form' || phase === 'spinning') && (
-          <div className="wheel-form">
-            <input
-              type="text"
-              className="wheel-input"
-              placeholder={t.namePlaceholder}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={phase === 'spinning'}
-            />
-            <input
-              type="email"
-              className="wheel-input"
-              placeholder={t.emailPlaceholder}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={phase === 'spinning'}
-            />
-            <input
-              type="tel"
-              className="wheel-input"
-              placeholder={t.phonePlaceholder}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={phase === 'spinning'}
-            />
-            <input
-              type="text"
-              className="wheel-input"
-              placeholder={t.companyPlaceholder}
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              disabled={phase === 'spinning'}
-            />
-            {error && <p className="wheel-error">{error}</p>}
-            <button
-              className="wheel-btn"
-              onClick={handleSpin}
-              disabled={phase === 'spinning'}
-            >
-              {phase === 'spinning' ? t.spinning : t.spin}
+            <div className="modal-steps">
+              <div className="modal-step"><span className="modal-step-num">1</span>{t.step1}</div>
+              <div className="modal-step"><span className="modal-step-num">2</span>{t.step2}</div>
+              <div className="modal-step"><span className="modal-step-num">3</span>{t.step3}</div>
+            </div>
+            <span className="modal-email-note">{t.emailSent}</span>
+            <button className="wheel-btn modal-btn" onClick={() => setPhase('done')}>
+              {t.close}
+            </button>
+            <button className="wheel-btn-secondary modal-btn" onClick={handleNewSpin}>
+              {t.spinAgain}
             </button>
           </div>
-        )}
+        </div>
+      )}
 
-        <p className="wheel-terms">{t.terms}</p>
-      </div>
+      {/* Try again popup overlay */}
+      {phase === 'retry' && (
+        <div className="modal-overlay" onClick={handleRetry}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <span className="modal-congrats">{t.tryAgainMsg}</span>
+            <button className="wheel-btn modal-btn" onClick={handleRetry}>
+              {t.spinAgain}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

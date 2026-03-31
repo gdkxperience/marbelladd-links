@@ -1,33 +1,70 @@
-/* ===== Wheel Page Layout ===== */
-.wheel-container {
-  padding-top: 48px !important;
-  gap: 0;
+/* ===== Wheel Page ===== */
+.wheel-page {
+  width: 100vw;
+  min-height: 100dvh;
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+/* ===== Top Bar ===== */
+.wheel-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  animation: fadeIn 0.4s ease-out both;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  align-self: flex-start;
   font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 400;
   color: var(--color-text-secondary);
   text-decoration: none;
   letter-spacing: 0.3px;
-  margin-bottom: 32px;
   transition: color 0.2s ease;
-  animation: fadeIn 0.4s ease-out both;
 }
 
 .back-link:hover {
   color: var(--color-text);
 }
 
+/* ===== Layout ===== */
+.wheel-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px 40px;
+}
+
+.wheel-col-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.6s ease-out 0.1s both;
+}
+
+.wheel-col-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
 /* ===== Header ===== */
 .wheel-header {
   text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
   animation: fadeIn 0.5s ease-out both;
 }
 
@@ -53,11 +90,9 @@
   position: relative;
   width: 320px;
   height: 320px;
-  margin: 0 auto 36px;
-  animation: fadeIn 0.6s ease-out 0.1s both;
+  margin: 0 auto 32px;
 }
 
-/* Red pointer matching the physical wheel */
 .wheel-pointer {
   position: absolute;
   top: -10px;
@@ -201,24 +236,37 @@
   margin-top: 4px;
 }
 
-/* ===== Modal Animations ===== */
 @keyframes overlayIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 @keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ===== Secondary Button ===== */
+/* ===== Buttons ===== */
+.wheel-btn {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wheel-btn:hover { opacity: 0.9; }
+.wheel-btn:active { transform: scale(0.985); }
+.wheel-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
 .wheel-btn-secondary {
   width: 100%;
   padding: 14px 20px;
@@ -253,7 +301,7 @@
 
 .wheel-input {
   width: 100%;
-  padding: 16px 20px;
+  padding: 14px 18px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
@@ -265,53 +313,15 @@
   -webkit-appearance: none;
 }
 
-.wheel-input::placeholder {
-  color: var(--color-text-secondary);
-  opacity: 0.5;
-}
-
-.wheel-input:focus {
-  border-color: var(--color-text-secondary);
-}
-
-.wheel-input:disabled {
-  opacity: 0.5;
-}
+.wheel-input::placeholder { color: var(--color-text-secondary); opacity: 0.5; }
+.wheel-input:focus { border-color: var(--color-text-secondary); }
+.wheel-input:disabled { opacity: 0.5; }
 
 .wheel-error {
   font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--color-accent);
   font-weight: 400;
-}
-
-.wheel-btn {
-  width: 100%;
-  padding: 16px 20px;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--color-text);
-  color: var(--color-bg);
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.wheel-btn:hover {
-  opacity: 0.9;
-}
-
-.wheel-btn:active {
-  transform: scale(0.985);
-}
-
-.wheel-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* ===== Terms ===== */
@@ -328,31 +338,97 @@
   margin-top: auto;
 }
 
-/* ===== Animations ===== */
-@keyframes prizeReveal {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ===== Responsive ===== */
+/* ===== Small Mobile ===== */
 @media (max-width: 360px) {
   .wheel-wrapper {
     width: 280px;
     height: 280px;
   }
-
   .wheel-spin-area {
     width: 280px;
     height: 280px;
   }
-
   .wheel-title {
     font-size: 1.4rem;
+  }
+}
+
+/* ===== Desktop ===== */
+@media (min-width: 768px) {
+  .wheel-topbar {
+    padding: 24px 48px;
+  }
+
+  .wheel-layout {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 64px;
+    padding: 0 48px 48px;
+    min-height: calc(100dvh - 80px);
+  }
+
+  .wheel-col-left {
+    flex-shrink: 0;
+  }
+
+  .wheel-col-right {
+    align-items: flex-start;
+    max-width: 380px;
+  }
+
+  .wheel-header {
+    text-align: left;
+  }
+
+  .wheel-title {
+    font-size: 2rem;
+  }
+
+  .wheel-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .wheel-wrapper {
+    width: 420px;
+    height: 420px;
+    margin: 0;
+  }
+
+  .wheel-spin-area {
+    width: 420px;
+    height: 420px;
+  }
+
+  .wheel-pointer {
+    border-left-width: 16px;
+    border-right-width: 16px;
+    border-top-width: 32px;
+  }
+
+  .wheel-terms {
+    text-align: left;
+    margin-top: 16px;
+  }
+}
+
+/* ===== Large Desktop ===== */
+@media (min-width: 1024px) {
+  .wheel-layout {
+    gap: 80px;
+  }
+
+  .wheel-wrapper {
+    width: 480px;
+    height: 480px;
+  }
+
+  .wheel-spin-area {
+    width: 480px;
+    height: 480px;
+  }
+
+  .wheel-title {
+    font-size: 2.2rem;
   }
 }
