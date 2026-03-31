@@ -79,6 +79,7 @@ const UI = {
     alreadyPlayed: 'You have already played with this email.',
     invalidEmail: 'Please enter a valid email address.',
     missingFields: 'Please fill in all required fields.',
+    invalidPhone: 'Please enter a valid phone number.',
     backToLinks: 'Back to Links',
     terms: 'One spin per email. Show the coupon at our store to redeem.',
     spinAgain: 'Try Again',
@@ -103,6 +104,7 @@ const UI = {
     alreadyPlayed: 'Вече си играл с този имейл.',
     invalidEmail: 'Моля, въведи валиден имейл адрес.',
     missingFields: 'Моля, попълни всички задължителни полета.',
+    invalidPhone: 'Моля, въведи валиден телефонен номер.',
     backToLinks: 'Обратно към линкове',
     terms: 'Едно завъртане на имейл. Покажи купона в магазина, за да го използваш.',
     spinAgain: 'Опитай пак',
@@ -127,6 +129,7 @@ const UI = {
     alreadyPlayed: 'Вы уже играли с этим email.',
     invalidEmail: 'Пожалуйста, введите действительный email.',
     missingFields: 'Пожалуйста, заполните все обязательные поля.',
+    invalidPhone: 'Пожалуйста, введите действительный номер телефона.',
     backToLinks: 'Назад к ссылкам',
     terms: 'Одно вращение на email. Покажите купон в магазине для активации.',
     spinAgain: 'Попробовать снова',
@@ -166,6 +169,11 @@ function isEmailPlayed(email) {
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidPhone(phone) {
+  // At least 6 digits, allows +, spaces, dashes, parens
+  return /^[+]?[\d\s\-()]{6,}$/.test(phone.trim());
 }
 
 function drawWheel(canvas, lang) {
@@ -314,6 +322,11 @@ export default function WheelPage() {
       return;
     }
 
+    if (!isValidPhone(phone)) {
+      setError(t.invalidPhone);
+      return;
+    }
+
     if (isEmailPlayed(email)) {
       setError(t.alreadyPlayed);
       return;
@@ -349,6 +362,16 @@ export default function WheelPage() {
   const handleRetry = () => {
     setPhase('form');
     setPrize(null);
+  };
+
+  const handleNewSpin = () => {
+    setPhase('form');
+    setPrize(null);
+    setName('');
+    setEmail('');
+    setPhone('');
+    setCompany('');
+    setError('');
   };
 
   const sendSpinData = async (data) => {
@@ -431,6 +454,9 @@ export default function WheelPage() {
               <span className="modal-email-note">{t.emailSent}</span>
               <button className="wheel-btn modal-btn" onClick={() => setPhase('done')}>
                 {t.close}
+              </button>
+              <button className="wheel-btn-secondary modal-btn" onClick={handleNewSpin}>
+                {t.spinAgain}
               </button>
             </div>
           </div>

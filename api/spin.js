@@ -1,12 +1,15 @@
 // Vercel Serverless Function: POST /api/spin
-// Stores email + prize and sends coupon email
+// Stores lead data + sends coupon email
 //
 // Required env vars:
-//   RESEND_API_KEY     - API key from resend.com (free tier: 100 emails/day)
-//   FROM_EMAIL         - Verified sender email (e.g. hello@marbelladd.com)
+//   UPSTASH_REDIS_REST_URL    - from Vercel > Storage > Upstash Redis
+//   UPSTASH_REDIS_REST_TOKEN  - from Vercel > Storage > Upstash Redis
 //
 // Optional env vars:
-//   GOOGLE_SHEET_WEBHOOK - Google Apps Script web app URL for storing emails
+//   RESEND_API_KEY  - API key from resend.com
+//   FROM_EMAIL      - Verified sender email
+
+import { Redis } from '@upstash/redis';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -24,28 +27,21 @@ export default async function handler(req, res) {
   }
 
   const timestamp = new Date().toISOString();
+  const entry = { name, email, phone, company, prize, timestamp };
 
-  // 1. Store data in Google Sheets (optional)
-  // Google Apps Script redirects (302) on POST — we must follow manually keeping POST method
-  if (process.env.GOOGLE_SHEET_WEBHOOK) {
+  // 1. Store in Upstash Redis
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
     try {
-      const payload = JSON.stringify({ name, email, phone, company, prize, timestamp });
-      let url = process.env.GOOGLE_SHEET_WEBHOOK;
-      for (let i = 0; i < 3; i++) {
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-          redirect: 'manual',
-        });
-        if (resp.status >= 300 && resp.status < 400) {
-          url = resp.headers.get('location');
-          continue;
-        }
-        break;
-      }
+      const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      // Store lead as a list entry (for easy export later)
+      await redis.lpush('wheel_leads', JSON.stringify(entry));
+      // Track email to prevent duplicate spins server-side
+      await redis.set(`wheel_email:${email.toLowerCase().trim()}`, prize);
     } catch {
-      // Non-blocking — continue even if sheet storage fails
+      // Non-blocking
     }
   }
 
@@ -62,18 +58,18 @@ export default async function handler(req, res) {
           from: process.env.FROM_EMAIL || 'Marbella Decor & Design <onboarding@resend.dev>',
           to: [email],
           subject: `Your Prize: ${prize} — Marbella Decor & Design`,
-          html: buildCouponEmail(prize, email),
+          html: buildCouponEmail(prize, name),
         }),
       });
     } catch {
-      // Log but don't fail the request
+      // Non-blocking
     }
   }
 
   return res.status(200).json({ success: true, prize });
 }
 
-function buildCouponEmail(prize, email) {
+function buildCouponEmail(prize, name) {
   const code = generateCode();
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + 30);
@@ -101,6 +97,12 @@ function buildCouponEmail(prize, email) {
               <span style="font-family:'Georgia',serif; font-size:18px; font-weight:bold; color:#222222; letter-spacing:3px;">MARBELLA</span>
               <br>
               <span style="font-family:'Helvetica Neue',sans-serif; font-size:9px; color:#6b6560; letter-spacing:4px;">DESIGN & DECOR</span>
+            </td>
+          </tr>
+          <!-- Greeting -->
+          <tr>
+            <td align="center" style="padding-bottom:24px;">
+              <span style="font-family:'Helvetica Neue',sans-serif; font-size:14px; color:#222222;">Hi ${name},</span>
             </td>
           </tr>
           <!-- Coupon Card -->
