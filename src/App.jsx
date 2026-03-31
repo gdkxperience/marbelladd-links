@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchLinks } from './sheets';
 import fallbackData from './links.json';
 import { icons } from './Icons';
@@ -9,9 +10,9 @@ const SOCIAL_PLATFORMS = ['instagram', 'tiktok', 'facebook', 'youtube', 'twitter
 const LANGS = ['en', 'bg', 'ru'];
 
 const UI_STRINGS = {
-  en: { tagline: 'Elegant. Natural. Unique.' },
-  bg: { tagline: 'Елегантно. Естествено. Уникално.' },
-  ru: { tagline: 'Элегантно. Натурально. Уникально.' },
+  en: { tagline: 'Elegant. Natural. Unique.', wheelCta: 'Spin & Win a Prize!' },
+  bg: { tagline: 'Елегантно. Естествено. Уникално.', wheelCta: 'Завърти & Спечели награда!' },
+  ru: { tagline: 'Элегантно. Натурально. Уникально.', wheelCta: 'Крути & Выиграй приз!' },
 };
 
 function getInitialLang() {
@@ -123,6 +124,19 @@ function App() {
               </button>
             ))}
         </nav>
+
+        <Link to="/wheel" className="wheel-promo">
+          <span className="wheel-promo-icon">
+            {icons.gift}
+          </span>
+          <span className="wheel-promo-text">{UI_STRINGS[lang].wheelCta}</span>
+          <span className="link-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </Link>
 
         <footer className="footer">
           {socials.length > 0 && (
