@@ -17,6 +17,46 @@ export default async function handler(req, res) {
     token: process.env.KV_REST_API_TOKEN,
   });
 
+  // PUT — update a lead by index
+  if (req.method === 'PUT') {
+    try {
+      const { index, lead } = req.body || {};
+      if (typeof index !== 'number' || !lead) {
+        return res.status(400).json({ error: 'Provide "index" (number) and "lead" object' });
+      }
+      await redis.lset('wheel_leads', index, JSON.stringify(lead));
+      return res.status(200).json({ status: 'ok' });
+    } catch (err) {
+      return res.status(500).json({ status: 'error', message: err.message });
+    }
+  }
+
+  // DELETE — remove a lead by index
+  if (req.method === 'DELETE') {
+    try {
+      const { index } = req.body || {};
+      if (typeof index !== 'number') {
+        return res.status(400).json({ error: 'Provide "index" (number)' });
+      }
+      // Get the lead to remove its email dedup key
+      const raw = await redis.lindex('wheel_leads', index);
+      if (raw) {
+        let lead;
+        try { lead = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch {}
+        if (lead && lead.email) {
+          await redis.del(`wheel_email:${lead.email.toLowerCase().trim()}`);
+        }
+      }
+      // Tombstone then remove
+      const tombstone = '__DELETED__';
+      await redis.lset('wheel_leads', index, tombstone);
+      await redis.lrem('wheel_leads', 1, tombstone);
+      return res.status(200).json({ status: 'ok' });
+    } catch (err) {
+      return res.status(500).json({ status: 'error', message: err.message });
+    }
+  }
+
   // POST — import leads (with duplicate check by email)
   if (req.method === 'POST') {
     try {
@@ -94,16 +134,25 @@ function buildDashboard(leads) {
   const today = new Date().toISOString().slice(0, 10);
   const todayCount = leads.filter((l) => l.timestamp && l.timestamp.startsWith(today)).length;
 
+  const PRIZE_LIST = [
+    'Free Table Delivery', '15% Off Table', 'Raffle Marbella Table',
+    'Design Project Consultation', 'Marbella Gift Coaster',
+    '10% Off Accessories', '25% Off Accessories', '5% Off Accessories',
+    '€200 Gift Toward a Table',
+  ];
+  const prizeOptions = PRIZE_LIST.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
   const rows = leads.map((l, i) => `
-    <tr>
+    <tr data-idx="${i}">
       <td>${total - i}</td>
-      <td>${esc(l.name)}</td>
-      <td><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></td>
-      <td>${esc(l.phone)}</td>
-      <td>${esc(l.company)}</td>
-      <td><span class="prize-tag">${esc(l.prize)}</span></td>
-      <td>${esc(l.notes)}</td>
+      <td class="editable" data-field="name">${esc(l.name)}</td>
+      <td class="editable" data-field="email">${esc(l.email)}</td>
+      <td class="editable" data-field="phone">${esc(l.phone)}</td>
+      <td class="editable" data-field="company">${esc(l.company)}</td>
+      <td class="editable" data-field="prize"><span class="prize-tag">${esc(l.prize)}</span></td>
+      <td class="editable" data-field="notes">${esc(l.notes)}</td>
       <td>${formatDate(l.timestamp)}</td>
+      <td><button class="btn-del" onclick="deleteLead(${i})" title="Delete">&#10005;</button></td>
     </tr>`).join('');
 
   return `<!DOCTYPE html>
@@ -243,7 +292,31 @@ function buildDashboard(leads) {
       color: #6b6560;
       font-size: 0.85rem;
     }
-    .add-row input {
+    .editable { cursor: pointer; }
+    .editable:hover { background: #f0efed !important; }
+    .editable input, .editable select {
+      width: 100%;
+      padding: 5px 8px;
+      border: 1px solid #c25b41;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      background: #fff;
+      outline: none;
+    }
+    .editable select { padding: 4px 6px; }
+    .btn-del {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .btn-del:hover { color: #c62828; background: #fce4ec; }
+    .add-row input, .add-row select {
       width: 100%;
       padding: 7px 10px;
       border: 1px solid #e8e6e2;
@@ -254,7 +327,7 @@ function buildDashboard(leads) {
       outline: none;
       transition: border-color 0.15s;
     }
-    .add-row input:focus { border-color: #222; }
+    .add-row input:focus, .add-row select:focus { border-color: #222; }
     .add-row td { padding: 6px 8px; }
     .add-row .btn-add {
       padding: 6px 14px;
@@ -317,56 +390,131 @@ function buildDashboard(leads) {
   </div>
 
   <div class="table-wrap">
-    ${total === 0
-      ? `<table>
-        <thead>
-          <tr>
-            <th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Prize</th><th>Notes</th><th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="add-row">
-            <td style="color:#6b6560;font-size:0.7rem">+</td>
-            <td><input id="addName" placeholder="Name"></td>
-            <td><input id="addEmail" placeholder="Email" type="email"></td>
-            <td><input id="addPhone" placeholder="Phone"></td>
-            <td><input id="addCompany" placeholder="Company"></td>
-            <td><input id="addPrize" placeholder="Prize"></td>
-            <td><input id="addNotes" placeholder="Notes"></td>
-            <td><button class="btn-add" onclick="addLead()">Add</button></td>
-          </tr>
-        </tbody>
-      </table>`
-      : `<table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Company</th>
-            <th>Prize</th>
-            <th>Notes</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>${rows}
-          <tr class="add-row">
-            <td style="color:#6b6560;font-size:0.7rem">+</td>
-            <td><input id="addName" placeholder="Name"></td>
-            <td><input id="addEmail" placeholder="Email" type="email"></td>
-            <td><input id="addPhone" placeholder="Phone"></td>
-            <td><input id="addCompany" placeholder="Company"></td>
-            <td><input id="addPrize" placeholder="Prize"></td>
-            <td><input id="addNotes" placeholder="Notes"></td>
-            <td><button class="btn-add" onclick="addLead()">Add</button></td>
-          </tr>
-        </tbody>
-      </table>`
-    }
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Company</th>
+          <th>Prize</th>
+          <th>Notes</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}
+        <tr class="add-row">
+          <td style="color:#6b6560;font-size:0.7rem">+</td>
+          <td><input id="addName" placeholder="Name"></td>
+          <td><input id="addEmail" placeholder="Email" type="email"></td>
+          <td><input id="addPhone" placeholder="Phone"></td>
+          <td><input id="addCompany" placeholder="Company"></td>
+          <td><select id="addPrize"><option value="">— Prize —</option>${prizeOptions}</select></td>
+          <td><input id="addNotes" placeholder="Notes"></td>
+          <td colspan="2"><button class="btn-add" onclick="addLead()">Add</button></td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <script>
+    var leadsData = ${JSON.stringify(leads)};
+    var PRIZE_LIST = ${JSON.stringify(PRIZE_LIST)};
+
+    // Inline editing — click a cell to edit
+    document.querySelectorAll('.editable').forEach(function(td) {
+      td.addEventListener('click', function() {
+        if (td.querySelector('input') || td.querySelector('select')) return;
+        var tr = td.closest('tr');
+        var idx = parseInt(tr.dataset.idx);
+        var field = td.dataset.field;
+        var current = leadsData[idx][field] || '';
+
+        if (field === 'prize') {
+          var sel = document.createElement('select');
+          sel.innerHTML = '<option value="">— None —</option>' + PRIZE_LIST.map(function(p) {
+            return '<option value="' + p.replace(/"/g,'&quot;') + '"' + (p === current ? ' selected' : '') + '>' + p + '</option>';
+          }).join('');
+          td.textContent = '';
+          td.appendChild(sel);
+          sel.focus();
+          sel.addEventListener('change', function() { saveField(idx, field, sel.value, td); });
+          sel.addEventListener('blur', function() { saveField(idx, field, sel.value, td); });
+        } else {
+          var inp = document.createElement('input');
+          inp.value = current;
+          inp.type = field === 'email' ? 'email' : 'text';
+          td.textContent = '';
+          td.appendChild(inp);
+          inp.focus();
+          inp.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { inp.blur(); }
+            if (e.key === 'Escape') { restoreCell(td, field, current); }
+          });
+          inp.addEventListener('blur', function() { saveField(idx, field, inp.value.trim(), td); });
+        }
+      });
+    });
+
+    async function saveField(idx, field, value, td) {
+      var lead = Object.assign({}, leadsData[idx]);
+      lead[field] = value;
+      try {
+        var resp = await fetch('/api/leads', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: idx, lead: lead }),
+        });
+        var data = await resp.json();
+        if (data.status === 'ok') {
+          leadsData[idx] = lead;
+          restoreCell(td, field, value);
+        } else {
+          showStatus('Error saving: ' + (data.message || ''), 'error');
+          restoreCell(td, field, leadsData[idx][field] || '');
+        }
+      } catch (err) {
+        showStatus('Network error: ' + err.message, 'error');
+        restoreCell(td, field, leadsData[idx][field] || '');
+      }
+    }
+
+    function restoreCell(td, field, value) {
+      if (field === 'prize') {
+        td.innerHTML = '<span class="prize-tag">' + escHtml(value) + '</span>';
+      } else {
+        td.textContent = value;
+      }
+    }
+
+    function escHtml(s) {
+      var d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    async function deleteLead(idx) {
+      if (!confirm('Delete this lead?')) return;
+      try {
+        var resp = await fetch('/api/leads', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: idx }),
+        });
+        var data = await resp.json();
+        if (data.status === 'ok') {
+          showStatus('Lead deleted.', 'success');
+          setTimeout(function() { location.reload(); }, 800);
+        } else {
+          showStatus('Error: ' + (data.message || ''), 'error');
+        }
+      } catch (err) {
+        showStatus('Network error: ' + err.message, 'error');
+      }
+    }
+
     function handleFileUpload(input) {
       const file = input.files[0];
       if (!file) return;
@@ -456,7 +604,7 @@ function buildDashboard(leads) {
       const email = document.getElementById('addEmail').value.trim();
       const phone = document.getElementById('addPhone').value.trim();
       const company = document.getElementById('addCompany').value.trim();
-      const prize = document.getElementById('addPrize').value.trim();
+      const prize = document.getElementById('addPrize').value;
       const notes = document.getElementById('addNotes').value.trim();
       if (!name && !email) {
         showStatus('Please enter at least a name or email.', 'error');
