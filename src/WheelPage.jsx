@@ -66,7 +66,10 @@ const UI = {
   en: {
     title: 'Spin & Win',
     subtitle: 'Try your luck and win an exclusive prize!',
-    emailPlaceholder: 'Enter your email',
+    namePlaceholder: 'Full Name *',
+    emailPlaceholder: 'Email *',
+    phonePlaceholder: 'Phone Number *',
+    companyPlaceholder: 'Company',
     spin: 'Spin the Wheel',
     spinning: 'Spinning...',
     congrats: 'Congratulations!',
@@ -75,6 +78,7 @@ const UI = {
     emailSent: 'A coupon has been sent to your email.',
     alreadyPlayed: 'You have already played with this email.',
     invalidEmail: 'Please enter a valid email address.',
+    missingFields: 'Please fill in all required fields.',
     backToLinks: 'Back to Links',
     terms: 'One spin per email. Show the coupon at our store to redeem.',
     spinAgain: 'Try Again',
@@ -86,7 +90,10 @@ const UI = {
   bg: {
     title: 'Завърти & Спечели',
     subtitle: 'Опитай късмета си и спечели ексклузивна награда!',
-    emailPlaceholder: 'Въведи имейл',
+    namePlaceholder: 'Име и Фамилия *',
+    emailPlaceholder: 'Имейл *',
+    phonePlaceholder: 'Телефонен номер *',
+    companyPlaceholder: 'Фирма',
     spin: 'Завърти колелото',
     spinning: 'Върти се...',
     congrats: 'Поздравления!',
@@ -95,6 +102,7 @@ const UI = {
     emailSent: 'Купон беше изпратен на имейла ти.',
     alreadyPlayed: 'Вече си играл с този имейл.',
     invalidEmail: 'Моля, въведи валиден имейл адрес.',
+    missingFields: 'Моля, попълни всички задължителни полета.',
     backToLinks: 'Обратно към линкове',
     terms: 'Едно завъртане на имейл. Покажи купона в магазина, за да го използваш.',
     spinAgain: 'Опитай пак',
@@ -106,7 +114,10 @@ const UI = {
   ru: {
     title: 'Крути & Выиграй',
     subtitle: 'Испытай удачу и выиграй эксклюзивный приз!',
-    emailPlaceholder: 'Введите email',
+    namePlaceholder: 'Полное имя *',
+    emailPlaceholder: 'Email *',
+    phonePlaceholder: 'Номер телефона *',
+    companyPlaceholder: 'Компания',
     spin: 'Крутить колесо',
     spinning: 'Крутится...',
     congrats: 'Поздравляем!',
@@ -115,6 +126,7 @@ const UI = {
     emailSent: 'Купон отправлен на ваш email.',
     alreadyPlayed: 'Вы уже играли с этим email.',
     invalidEmail: 'Пожалуйста, введите действительный email.',
+    missingFields: 'Пожалуйста, заполните все обязательные поля.',
     backToLinks: 'Назад к ссылкам',
     terms: 'Одно вращение на email. Покажите купон в магазине для активации.',
     spinAgain: 'Попробовать снова',
@@ -260,8 +272,11 @@ function drawWheel(canvas, lang) {
 
 export default function WheelPage() {
   const [lang, setLang] = useState(getInitialLang);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phase, setPhase] = useState('form'); // form | spinning | won | retry
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [phase, setPhase] = useState('form'); // form | spinning | won | retry | done
   const [prize, setPrize] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [error, setError] = useState('');
@@ -288,6 +303,11 @@ export default function WheelPage() {
 
   const handleSpin = async () => {
     setError('');
+
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      setError(t.missingFields);
+      return;
+    }
 
     if (!isValidEmail(email)) {
       setError(t.invalidEmail);
@@ -321,7 +341,7 @@ export default function WheelPage() {
         setPhase('won');
         markEmailPlayed(email);
         const prizeText = won[lang] || won.en;
-        sendSpinData(email, prizeText.replace('\n', ' ')).catch(() => {});
+        sendSpinData({ name, email, phone, company, prize: prizeText.replace('\n', ' ') }).catch(() => {});
       }
     }, 4500);
   };
@@ -331,12 +351,12 @@ export default function WheelPage() {
     setPrize(null);
   };
 
-  const sendSpinData = async (userEmail, prizeName) => {
+  const sendSpinData = async (data) => {
     try {
       await fetch('/api/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail, prize: prizeName }),
+        body: JSON.stringify(data),
       });
     } catch {
       // API is optional
@@ -432,13 +452,36 @@ export default function WheelPage() {
         {(phase === 'form' || phase === 'spinning') && (
           <div className="wheel-form">
             <input
+              type="text"
+              className="wheel-input"
+              placeholder={t.namePlaceholder}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={phase === 'spinning'}
+            />
+            <input
               type="email"
               className="wheel-input"
               placeholder={t.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={phase === 'spinning'}
-              onKeyDown={(e) => e.key === 'Enter' && phase === 'form' && handleSpin()}
+            />
+            <input
+              type="tel"
+              className="wheel-input"
+              placeholder={t.phonePlaceholder}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              disabled={phase === 'spinning'}
+            />
+            <input
+              type="text"
+              className="wheel-input"
+              placeholder={t.companyPlaceholder}
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              disabled={phase === 'spinning'}
             />
             {error && <p className="wheel-error">{error}</p>}
             <button

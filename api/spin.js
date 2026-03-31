@@ -13,10 +13,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, prize } = req.body || {};
+  const { name, email, phone, company, prize } = req.body || {};
 
-  if (!email || !prize) {
-    return res.status(400).json({ error: 'Email and prize are required' });
+  if (!name || !email || !phone || !prize) {
+    return res.status(400).json({ error: 'Name, email, phone, and prize are required' });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -25,13 +25,13 @@ export default async function handler(req, res) {
 
   const timestamp = new Date().toISOString();
 
-  // 1. Store email in Google Sheets (optional)
+  // 1. Store data in Google Sheets (optional)
   if (process.env.GOOGLE_SHEET_WEBHOOK) {
     try {
       await fetch(process.env.GOOGLE_SHEET_WEBHOOK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, prize, timestamp }),
+        body: JSON.stringify({ name, email, phone, company, prize, timestamp }),
       });
     } catch {
       // Non-blocking — continue even if sheet storage fails
