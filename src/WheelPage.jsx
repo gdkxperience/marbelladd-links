@@ -577,33 +577,35 @@ export default function WheelPage() {
       {showPrizesModal && (
         <div className="modal-overlay" onClick={() => setShowPrizesModal(false)}>
           <div className="prizes-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="prizes-modal-heading">{t.title}</h2>
-            <span className="prizes-modal-title">{t.prizesTitle}</span>
-            <div className="prizes-list">
-              {/* Top 3 biggest prizes first, larger font */}
-              {[9, 2, 3].map((idx) => {
-                const p = PRIZES[idx];
-                return (
-                  <div key={idx} className="prizes-item prizes-item-big">
-                    <span className="prizes-star">&#9733;</span>
-                    <span>{(p[lang] || p.en).replace('\n', ' ')}</span>
-                  </div>
-                );
-              })}
-              {/* Remaining prizes */}
-              {[0, 1, 5, 6, 7, 8].map((idx) => {
-                const p = PRIZES[idx];
-                return (
-                  <div key={idx} className="prizes-item">
-                    <span className="prizes-dot">&#8226;</span>
-                    <span>{(p[lang] || p.en).replace('\n', ' ')}</span>
-                  </div>
-                );
-              })}
+            <div className="prizes-col-left">
+              <div className="prizes-list">
+                {[9, 2, 3].map((idx) => {
+                  const p = PRIZES[idx];
+                  return (
+                    <div key={idx} className="prizes-item prizes-item-big">
+                      <span className="prizes-star">&#9733;</span>
+                      <span>{(p[lang] || p.en).replace('\n', ' ')}</span>
+                    </div>
+                  );
+                })}
+                {[0, 1, 5, 6, 7, 8].map((idx) => {
+                  const p = PRIZES[idx];
+                  return (
+                    <div key={idx} className="prizes-item">
+                      <span className="prizes-dot">&#8226;</span>
+                      <span>{(p[lang] || p.en).replace('\n', ' ')}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <button className="wheel-btn modal-btn" onClick={() => setShowPrizesModal(false)}>
-              {t.spinNow}
-            </button>
+            <div className="prizes-col-right">
+              <h2 className="prizes-modal-heading">{t.title}</h2>
+              <span className="prizes-modal-title">{t.prizesTitle}</span>
+              <button className="wheel-btn" onClick={() => setShowPrizesModal(false)}>
+                {t.spinNow}
+              </button>
+            </div>
           </div>
         </div>
       )}
