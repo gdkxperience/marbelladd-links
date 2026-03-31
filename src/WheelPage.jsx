@@ -146,6 +146,7 @@ function drawWheel(canvas, lang) {
   const ctx = canvas.getContext('2d');
   const center = size / 2;
   const radius = center - 6;
+  const segRad = (SEGMENT_ANGLE * Math.PI) / 180;
 
   ctx.clearRect(0, 0, size, size);
 
@@ -173,68 +174,73 @@ function drawWheel(canvas, lang) {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Text along the segment (rotated from center outward)
-    const midAngle = startAngle + (SEGMENT_ANGLE * Math.PI) / 360;
+    // Text — drawn radially, reading from rim toward center (like the physical wheel)
+    const midAngle = startAngle + segRad / 2;
     ctx.save();
     ctx.translate(center, center);
-    ctx.rotate(midAngle);
+    // Rotate so "up" on the canvas points to mid-angle, then turn 90° so text reads along radius
+    ctx.rotate(midAngle + Math.PI / 2);
 
     const label = prize[lang] || prize.en;
     const lines = label.split('\n');
-    const fontSize = size * 0.032;
-    ctx.font = `600 ${fontSize}px "Montserrat", "Inter", sans-serif`;
+    const fontSize = 8.5;
+    ctx.font = `600 ${fontSize}px "Inter", "Montserrat", sans-serif`;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const lineHeight = fontSize * 1.35;
-    const textCenter = radius * 0.58;
+    const lineHeight = fontSize * 1.4;
+    // Position text centered between hub and rim
+    const textCenterDist = radius * 0.55;
+    // Max width constrained by segment arc width at the text distance
+    const maxWidth = 2 * textCenterDist * Math.sin(segRad / 2) * 0.85;
 
     lines.forEach((line, li) => {
-      const y = textCenter + (li - (lines.length - 1) / 2) * lineHeight;
-      ctx.fillText(line, 0, y);
+      const offset = (li - (lines.length - 1) / 2) * lineHeight;
+      // x goes along radius direction, y is 0 (centered)
+      ctx.fillText(line, offset, -textCenterDist, maxWidth);
     });
 
     ctx.restore();
   });
 
-  // Peg dots on the rim
+  // Peg dots on segment borders
   for (let i = 0; i < NUM_SEGMENTS; i++) {
-    const angle = ((i + 0.5) * SEGMENT_ANGLE - 90) * (Math.PI / 180);
-    const pegR = radius - 10;
+    const angle = (i * SEGMENT_ANGLE - 90) * (Math.PI / 180);
+    const pegR = radius - 8;
     ctx.beginPath();
     ctx.arc(
       center + pegR * Math.cos(angle),
       center + pegR * Math.sin(angle),
-      3, 0, Math.PI * 2
+      3.5, 0, Math.PI * 2
     );
     ctx.fillStyle = '#111111';
     ctx.fill();
-    ctx.strokeStyle = '#555555';
-    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = '#444444';
+    ctx.lineWidth = 1;
     ctx.stroke();
   }
 
-  // Outer ring
+  // Outer ring (white, like the physical wheel)
   ctx.beginPath();
   ctx.arc(center, center, radius, 0, Math.PI * 2);
   ctx.strokeStyle = '#f7f6f4';
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // Center hub — outer ring
+  // Center hub
   ctx.beginPath();
-  ctx.arc(center, center, radius * 0.13, 0, Math.PI * 2);
+  ctx.arc(center, center, radius * 0.12, 0, Math.PI * 2);
   ctx.fillStyle = '#333333';
   ctx.fill();
   ctx.strokeStyle = '#555555';
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  // Center hub — inner
+  // Center bolt
   ctx.beginPath();
-  ctx.arc(center, center, radius * 0.06, 0, Math.PI * 2);
-  ctx.fillStyle = '#666666';
+  ctx.arc(center, center, radius * 0.05, 0, Math.PI * 2);
+  ctx.fillStyle = '#777777';
   ctx.fill();
 }
 
