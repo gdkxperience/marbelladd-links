@@ -30,11 +30,11 @@ export default async function handler(req, res) {
   const entry = { name, email, phone, company, prize, timestamp };
 
   // 1. Store in Upstash Redis
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
     try {
       const redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        url: process.env.KV_REST_API_URL,
+        token: process.env.KV_REST_API_TOKEN,
       });
       // Store lead as a list entry (for easy export later)
       await redis.lpush('wheel_leads', JSON.stringify(entry));
