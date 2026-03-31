@@ -17,20 +17,32 @@ export default async function handler(req, res) {
     token: process.env.KV_REST_API_TOKEN,
   });
 
-  // POST — import leads
+  // POST — import leads (with duplicate check by email)
   if (req.method === 'POST') {
     try {
       const { leads } = req.body || {};
       if (!Array.isArray(leads) || leads.length === 0) {
         return res.status(400).json({ error: 'Provide a "leads" array' });
       }
+      let imported = 0;
+      let skipped = 0;
+      const skippedEmails = [];
       for (const lead of leads) {
+        if (lead.email) {
+          const exists = await redis.get(`wheel_email:${lead.email.toLowerCase().trim()}`);
+          if (exists) {
+            skipped++;
+            skippedEmails.push(lead.email);
+            continue;
+          }
+        }
         await redis.lpush('wheel_leads', JSON.stringify(lead));
         if (lead.email) {
-          await redis.set(`wheel_email:${lead.email.toLowerCase().trim()}`, lead.prize || 'imported');
+          await redis.set(`wheel_email:${lead.email.toLowerCase().trim()}`, lead.prize || lead.notes || 'imported');
         }
+        imported++;
       }
-      return res.status(200).json({ status: 'ok', imported: leads.length });
+      return res.status(200).json({ status: 'ok', imported, skipped, skippedEmails });
     } catch (err) {
       return res.status(500).json({ status: 'error', message: err.message });
     }
@@ -231,52 +243,32 @@ function buildDashboard(leads) {
       color: #6b6560;
       font-size: 0.85rem;
     }
-    /* Import modal */
-    .modal-bg {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-bg.open { display: flex; }
-    .modal-box {
-      background: #fff;
-      border-radius: 16px;
-      padding: 32px;
-      width: 90%;
-      max-width: 520px;
-    }
-    .modal-box h2 {
-      font-size: 1rem;
-      margin-bottom: 8px;
-    }
-    .modal-box p {
-      font-size: 0.75rem;
-      color: #6b6560;
-      margin-bottom: 16px;
-    }
-    .modal-box textarea {
+    .add-row input {
       width: 100%;
-      height: 160px;
+      padding: 7px 10px;
       border: 1px solid #e8e6e2;
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.75rem;
-      resize: vertical;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      background: #fafaf8;
       outline: none;
+      transition: border-color 0.15s;
     }
-    .modal-box textarea:focus { border-color: #222; }
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-      justify-content: flex-end;
+    .add-row input:focus { border-color: #222; }
+    .add-row td { padding: 6px 8px; }
+    .add-row .btn-add {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #222;
+      color: #f7f6f4;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
     }
+    .add-row .btn-add:hover { opacity: 0.85; }
     .status-msg {
       padding: 10px 16px;
       border-radius: 8px;
@@ -316,7 +308,8 @@ function buildDashboard(leads) {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Download CSV
     </a>
-    <button class="btn" onclick="document.getElementById('importModal').classList.add('open')">
+    <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleFileUpload(this)">
+    <button class="btn" onclick="document.getElementById('csvFile').click()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       Import CSV
     </button>
@@ -325,7 +318,25 @@ function buildDashboard(leads) {
 
   <div class="table-wrap">
     ${total === 0
-      ? '<div class="empty">No leads yet. Spin the wheel to collect contacts!</div>'
+      ? `<table>
+        <thead>
+          <tr>
+            <th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Prize</th><th>Notes</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="add-row">
+            <td style="color:#6b6560;font-size:0.7rem">+</td>
+            <td><input id="addName" placeholder="Name"></td>
+            <td><input id="addEmail" placeholder="Email" type="email"></td>
+            <td><input id="addPhone" placeholder="Phone"></td>
+            <td><input id="addCompany" placeholder="Company"></td>
+            <td><input id="addPrize" placeholder="Prize"></td>
+            <td><input id="addNotes" placeholder="Notes"></td>
+            <td><button class="btn-add" onclick="addLead()">Add</button></td>
+          </tr>
+        </tbody>
+      </table>`
       : `<table>
         <thead>
           <tr>
@@ -339,37 +350,42 @@ function buildDashboard(leads) {
             <th>Date</th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rows}
+          <tr class="add-row">
+            <td style="color:#6b6560;font-size:0.7rem">+</td>
+            <td><input id="addName" placeholder="Name"></td>
+            <td><input id="addEmail" placeholder="Email" type="email"></td>
+            <td><input id="addPhone" placeholder="Phone"></td>
+            <td><input id="addCompany" placeholder="Company"></td>
+            <td><input id="addPrize" placeholder="Prize"></td>
+            <td><input id="addNotes" placeholder="Notes"></td>
+            <td><button class="btn-add" onclick="addLead()">Add</button></td>
+          </tr>
+        </tbody>
       </table>`
     }
   </div>
 
-  <!-- Import Modal -->
-  <div id="importModal" class="modal-bg" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="modal-box">
-      <h2>Import Leads</h2>
-      <p>Paste CSV data with headers: Name, Email, Phone, Company, Notes<br>One lead per line.</p>
-      <textarea id="csvInput" placeholder="Name,Email,Phone,Company,Notes
-John Doe,john@example.com,+359888123456,Acme Inc,10% off"></textarea>
-      <div class="modal-actions">
-        <button class="btn" onclick="document.getElementById('importModal').classList.remove('open')">Cancel</button>
-        <button class="btn btn-primary" onclick="importCSV()">Import</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    async function importCSV() {
-      const raw = document.getElementById('csvInput').value.trim();
-      if (!raw) return;
+    function handleFileUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const raw = e.target.result.trim();
+        importCSV(raw);
+      };
+      reader.readAsText(file);
+      input.value = '';
+    }
 
+    async function importCSV(raw) {
       const lines = raw.split('\\n').filter(l => l.trim());
       if (lines.length < 2) {
-        showStatus('Need at least a header row and one data row', 'error');
+        showStatus('CSV needs a header row and at least one data row.', 'error');
         return;
       }
 
-      // Parse header
       const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
       const leads = [];
 
@@ -378,7 +394,7 @@ John Doe,john@example.com,+359888123456,Acme Inc,10% off"></textarea>
         const lead = { timestamp: new Date().toISOString() };
         headers.forEach((h, idx) => {
           const v = (vals[idx] || '').trim();
-          if (h === 'name') lead.name = v;
+          if (h === 'name' || h === 'name') lead.name = v;
           else if (h === 'email') lead.email = v;
           else if (h === 'phone') lead.phone = v;
           else if (h === 'company') lead.company = v;
@@ -388,9 +404,11 @@ John Doe,john@example.com,+359888123456,Acme Inc,10% off"></textarea>
       }
 
       if (leads.length === 0) {
-        showStatus('No valid leads found', 'error');
+        showStatus('No valid leads found in CSV.', 'error');
         return;
       }
+
+      showStatus('Importing ' + leads.length + ' leads...', 'success');
 
       try {
         const resp = await fetch('/api/leads', {
@@ -400,9 +418,12 @@ John Doe,john@example.com,+359888123456,Acme Inc,10% off"></textarea>
         });
         const data = await resp.json();
         if (data.status === 'ok') {
-          document.getElementById('importModal').classList.remove('open');
-          showStatus('Imported ' + data.imported + ' leads successfully!', 'success');
-          setTimeout(() => location.reload(), 1500);
+          let msg = 'Imported ' + data.imported + ' leads.';
+          if (data.skipped > 0) {
+            msg += ' Skipped ' + data.skipped + ' duplicates (' + data.skippedEmails.join(', ') + ')';
+          }
+          showStatus(msg, 'success');
+          setTimeout(() => location.reload(), 2000);
         } else {
           showStatus('Error: ' + (data.error || data.message), 'error');
         }
@@ -428,6 +449,39 @@ John Doe,john@example.com,+359888123456,Acme Inc,10% off"></textarea>
       }
       result.push(current);
       return result;
+    }
+
+    async function addLead() {
+      const name = document.getElementById('addName').value.trim();
+      const email = document.getElementById('addEmail').value.trim();
+      const phone = document.getElementById('addPhone').value.trim();
+      const company = document.getElementById('addCompany').value.trim();
+      const prize = document.getElementById('addPrize').value.trim();
+      const notes = document.getElementById('addNotes').value.trim();
+      if (!name && !email) {
+        showStatus('Please enter at least a name or email.', 'error');
+        return;
+      }
+      try {
+        const resp = await fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leads: [{ name, email, phone, company, prize, notes, timestamp: new Date().toISOString() }] }),
+        });
+        const data = await resp.json();
+        if (data.status === 'ok') {
+          if (data.skipped > 0) {
+            showStatus('Duplicate email — already exists.', 'error');
+          } else {
+            showStatus('Lead added successfully.', 'success');
+            setTimeout(() => location.reload(), 1000);
+          }
+        } else {
+          showStatus('Error: ' + (data.error || data.message), 'error');
+        }
+      } catch (err) {
+        showStatus('Network error: ' + err.message, 'error');
+      }
     }
 
     function showStatus(msg, type) {

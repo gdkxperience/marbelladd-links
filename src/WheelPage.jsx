@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import './WheelPage.css';
 
@@ -176,8 +177,7 @@ function isValidPhone(phone) {
   return /^[+]?[\d\s\-()]{6,}$/.test(phone.trim());
 }
 
-function drawWheel(canvas, lang) {
-  const size = 320; // logical size
+function drawWheel(canvas, lang, size) {
   const ctx = canvas.getContext('2d');
   const center = size / 2;
   const radius = center - 6;
@@ -310,7 +310,7 @@ export default function WheelPage() {
     canvas.style.height = size + 'px';
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawWheel(canvas, currentLang);
+    drawWheel(canvas, currentLang, size);
   };
 
   useEffect(() => {
@@ -402,7 +402,7 @@ export default function WheelPage() {
     localStorage.setItem('lang', l);
   };
 
-  return (
+  return createPortal(
     <div className="wheel-page">
       {/* Top bar */}
       <div className="wheel-topbar">
@@ -545,6 +545,7 @@ export default function WheelPage() {
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
