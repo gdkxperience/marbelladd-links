@@ -600,7 +600,9 @@ export default function WheelPage() {
               </div>
             </div>
             <div className="prizes-col-right">
-              <h2 className="prizes-modal-heading">{t.title}</h2>
+              <h2 className="prizes-modal-heading">{t.title.split(' ').map((w, i, arr) => (
+                <span key={i}>{w}{i < arr.length - 1 ? <br /> : null}</span>
+              ))}</h2>
               <span className="prizes-modal-title">{t.prizesTitle}</span>
               <button className="wheel-btn" onClick={() => setShowPrizesModal(false)}>
                 {t.spinNow}
