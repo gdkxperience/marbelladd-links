@@ -70,7 +70,7 @@
 
 .wheel-title {
   font-family: var(--font-heading);
-  font-size: 1.6rem;
+  font-size: 3.2rem;
   font-weight: 600;
   color: var(--color-text);
   letter-spacing: 1px;
@@ -79,7 +79,7 @@
 
 .wheel-subtitle {
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 1.5rem;
   font-weight: 300;
   color: var(--color-text-secondary);
   letter-spacing: 0.5px;
@@ -249,13 +249,13 @@
 /* ===== Buttons ===== */
 .wheel-btn {
   width: 100%;
-  padding: 16px 20px;
+  padding: 18px 24px;
   border: none;
   border-radius: var(--radius);
   background: var(--color-text);
   color: var(--color-bg);
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   font-weight: 500;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -327,14 +327,14 @@
 /* ===== Terms ===== */
 .wheel-terms {
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.9rem;
   font-weight: 300;
   color: var(--color-text-secondary);
   text-align: center;
   opacity: 0.4;
   letter-spacing: 0.3px;
   line-height: 1.5;
-  max-width: 280px;
+  max-width: 400px;
   margin-top: auto;
 }
 
@@ -349,7 +349,7 @@
     height: 280px;
   }
   .wheel-title {
-    font-size: 1.4rem;
+    font-size: 2.6rem;
   }
 }
 
@@ -383,11 +383,11 @@
   }
 
   .wheel-title {
-    font-size: 2.2rem;
+    font-size: 3.8rem;
   }
 
   .wheel-subtitle {
-    font-size: 0.9rem;
+    font-size: 1.6rem;
   }
 
   .wheel-wrapper {
@@ -439,10 +439,10 @@
   }
 
   .wheel-title {
-    font-size: 2.5rem;
+    font-size: 4.5rem;
   }
 
   .wheel-subtitle {
-    font-size: 1rem;
+    font-size: 1.8rem;
   }
 }
