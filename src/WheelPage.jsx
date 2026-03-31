@@ -562,8 +562,10 @@ export default function WheelPage() {
       {/* Try again popup overlay */}
       {phase === 'retry' && (
         <div className="modal-overlay" onClick={handleRetry}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <span className="modal-congrats">{t.tryAgainMsg}</span>
+          <div className="modal retry-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="retry-icon">&#8635;</div>
+            <span className="retry-heading">{t.tryAgainMsg}</span>
+            <p className="retry-sub">{t.terms}</p>
             <button className="wheel-btn modal-btn" onClick={handleRetry}>
               {t.spinAgain}
             </button>
