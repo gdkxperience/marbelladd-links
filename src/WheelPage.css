@@ -1,12 +1,13 @@
 /* ===== Wheel Page ===== */
 .wheel-page {
-  width: 100vw;
-  min-height: 100dvh;
   position: fixed;
   inset: 0;
+  width: 100vw;
+  min-height: 100dvh;
   background: var(--color-bg);
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
   overflow-y: auto;
   z-index: 50;
 }
@@ -364,17 +365,18 @@
     align-items: center;
     justify-content: center;
     gap: 64px;
-    padding: 0 48px 48px;
+    padding: 40px 48px 48px;
     min-height: calc(100dvh - 80px);
   }
 
   .wheel-col-left {
     flex-shrink: 0;
+    overflow: visible;
   }
 
   .wheel-col-right {
     align-items: flex-start;
-    max-width: 380px;
+    max-width: 400px;
   }
 
   .wheel-header {
@@ -382,7 +384,7 @@
   }
 
   .wheel-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .wheel-subtitle {
@@ -390,20 +392,22 @@
   }
 
   .wheel-wrapper {
-    width: 420px;
-    height: 420px;
+    width: 500px;
+    height: 500px;
     margin: 0;
+    overflow: visible;
   }
 
   .wheel-spin-area {
-    width: 420px;
-    height: 420px;
+    width: 500px;
+    height: 500px;
   }
 
   .wheel-pointer {
+    top: -12px;
     border-left-width: 16px;
     border-right-width: 16px;
-    border-top-width: 32px;
+    border-top-width: 34px;
   }
 
   .wheel-terms {
@@ -415,20 +419,31 @@
 /* ===== Large Desktop ===== */
 @media (min-width: 1024px) {
   .wheel-layout {
-    gap: 80px;
+    gap: 100px;
   }
 
   .wheel-wrapper {
-    width: 480px;
-    height: 480px;
+    width: 640px;
+    height: 640px;
   }
 
   .wheel-spin-area {
-    width: 480px;
-    height: 480px;
+    width: 640px;
+    height: 640px;
+  }
+
+  .wheel-pointer {
+    top: -14px;
+    border-left-width: 18px;
+    border-right-width: 18px;
+    border-top-width: 38px;
   }
 
   .wheel-title {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
+  }
+
+  .wheel-subtitle {
+    font-size: 1rem;
   }
 }

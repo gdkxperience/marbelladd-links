@@ -293,8 +293,8 @@ export default function WheelPage() {
 
   const getWheelSize = () => {
     const w = window.innerWidth;
-    if (w >= 1024) return 480;
-    if (w >= 768) return 420;
+    if (w >= 1024) return 640;
+    if (w >= 768) return 500;
     if (w <= 360) return 280;
     return 320;
   };
