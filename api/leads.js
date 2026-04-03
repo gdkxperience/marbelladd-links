@@ -404,7 +404,7 @@ function buildDashboard(leads) {
           <th></th>
         </tr>
       </thead>
-      <tbody>${rows}
+      <tbody>
         <tr class="add-row">
           <td style="color:#6b6560;font-size:0.7rem">+</td>
           <td><input id="addName" placeholder="Name"></td>
@@ -415,6 +415,7 @@ function buildDashboard(leads) {
           <td><input id="addNotes" placeholder="Notes"></td>
           <td colspan="2"><button class="btn-add" onclick="addLead()">Add</button></td>
         </tr>
+        ${rows}
       </tbody>
     </table>
   </div>
