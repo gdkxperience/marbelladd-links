@@ -350,10 +350,19 @@ export default function WheelPage() {
     const won = PRIZES[prizeIndex];
 
     // Calculate spin to land on the correct segment
-    const targetAngle = 360 - (prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2);
+    // Segment i spans from i*36° to (i+1)*36° on the unrotated wheel (0° = top/12 o'clock).
+    // The pointer is fixed at top. We need the wheel to stop so segment center is at top.
+    // After rotation R (degrees CW), the point originally at angle A is now at angle (A - R).
+    // We want midpoint of segment i at top (0°): i*36 + 18 - R ≡ 0 (mod 360)
+    // So R ≡ i*36 + 18 (mod 360)
+    const targetRemainder = (prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2) % 360;
+    const currentRemainder = rotation % 360;
     const fullSpins = 5 + Math.floor(Math.random() * 3);
-    const jitter = (Math.random() - 0.5) * SEGMENT_ANGLE * 0.6;
-    const totalRotation = rotation + fullSpins * 360 + targetAngle + jitter;
+    const jitter = (Math.random() - 0.5) * SEGMENT_ANGLE * 0.5;
+    // How much more we need to rotate from current position to land on target
+    let delta = targetRemainder - currentRemainder;
+    if (delta < 0) delta += 360;
+    const totalRotation = rotation + fullSpins * 360 + delta + jitter;
 
     setRotation(totalRotation);
 
